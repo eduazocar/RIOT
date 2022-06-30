@@ -20,7 +20,7 @@
 
 #include "net/netdev/ieee802154.h"
 #include "net/ieee802154.h"
-
+#include "at86rf2xx_internal.h"
 #include "common.h"
 
 #include "od.h"
@@ -301,6 +301,28 @@ static int send(int iface, le_uint16_t dst_pan, uint8_t *dst, size_t dst_len,
         puts(")");
     }
     return 0;
+
+}
+void random_net_api(uint8_t idx, uint32_t *value)
+{
+    netdev_ieee802154_t *dev = &devs[idx].netdev;
+    int (*get)(netdev_t *, netopt_t, void *, size_t) = dev->netdev.driver->get;
+    get(&dev->netdev, NETOPT_RANDOM, value, sizeof(uint32_t));
 }
 
+int random(int argc, char **argv)
+{
+    (void) argc;
+    (void) argv;
+    at86rf2xx_disable_smart_idle(devs);
+    uint32_t test = 0;
+    at86rf2xx_get_random(devs, (uint8_t *)&test, sizeof(test));
+    printf("Random number basic: %lx\n", test);
+    at86rf2xx_enable_smart_idle(devs);
+    for (unsigned int i = 0; i < AT86RF2XX_NUM; i++) {
+        random_net_api(i , &test);
+    }
+    printf("Random number By the netopts: %lx\n", test);
+    return 0;
+}
 /** @} */

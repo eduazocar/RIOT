@@ -532,6 +532,7 @@ extern "C" {
 #define AT86RF2XX_TRX_RPC_MASK__PLL_RPC_EN                      (0x08)
 #define AT86RF2XX_TRX_RPC_MASK__XAH_TX_RPC_EN                   (0x04)
 #define AT86RF2XX_TRX_RPC_MASK__IPAN_RPC_EN                     (0x02)
+#define AT86RF2XX_TRX_RPC_MASK__RX_RPC__CTRL_DISABLED           (0xC1)
 
 #ifdef __cplusplus
 }
