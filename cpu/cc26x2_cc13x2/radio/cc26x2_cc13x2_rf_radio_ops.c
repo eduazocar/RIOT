@@ -31,7 +31,7 @@
 #include "cc26x2_cc13x2_rf_internal.h"
 #include "cc26x2_cc13x2_rfc.h"
 
-#define ENABLE_DEBUG 0
+#define ENABLE_DEBUG 1
 #include "debug.h"
 
 /** The FCS is calculated by the radio */
@@ -119,12 +119,12 @@ void cc26x2_cc13x2_rfc_isr(void)
         if (entry == NULL) {
             return;
         }
-
         /* we don't want an empty payload or a big one we can't handle :-) */
         uint16_t pktlen = *(uint16_t *)&entry->data;
         if (pktlen < CC26X2_CC13X2_RF_RX_STATUS_LEN ||
             pktlen > IEEE802154G_FRAME_LEN_MAX + CC26X2_CC13X2_RF_RX_STATUS_LEN) {
-            entry->status = RFC_DATA_ENTRY_PENDING;
+            entry->base.status = RFC_DATA_ENTRY_PENDING;
+            DEBUG("Fail\n");
             return;
         }
         psdu = (&entry->data) + 2;
@@ -168,7 +168,7 @@ void cc26x2_cc13x2_rfc_isr(void)
         /* If all failed, simply drop the frame and continue listening to
          * incoming frames */
         else {
-            entry->status = RFC_DATA_ENTRY_PENDING;
+            entry->base.status = RFC_DATA_ENTRY_PENDING;
         }
 
     }
@@ -178,8 +178,8 @@ void cc26x2_cc13x2_rfc_isr(void)
         RFC_DBELL_NONBUF->RFCPEIFG = ~CPE_IRQ_LAST_COMMAND_DONE;
         RFC_DBELL->RFCPEIEN &= ~CPE_IRQ_LAST_COMMAND_DONE;
 
-        if (rf_cmd_prop_tx_adv.status == RFC_PROP_DONE_OK) {
-            rf_cmd_prop_tx_adv.status = RFC_IDLE;
+        if (rf_cmd_prop_tx_adv.base.status == RFC_PROP_DONE_OK) {
+            rf_cmd_prop_tx_adv.base.status = RFC_IDLE;
 
             switch (_tx_state) {
             case STATE_TX:
@@ -202,12 +202,12 @@ void cc26x2_cc13x2_rfc_isr(void)
             }
         }
 
-        if (rf_cmd_prop_cs.status == RFC_PROP_DONE_IDLE ||
-            rf_cmd_prop_cs.status == RFC_PROP_DONE_BUSY) {
+        if (rf_cmd_prop_cs.base.status == RFC_PROP_DONE_IDLE ||
+            rf_cmd_prop_cs.base.status == RFC_PROP_DONE_BUSY) {
             _cca_result =
-                rf_cmd_prop_cs.status == RFC_PROP_DONE_IDLE ? CCA_RESULT_IDLE :
+                rf_cmd_prop_cs.base.status == RFC_PROP_DONE_IDLE ? CCA_RESULT_IDLE :
                                                               CCA_RESULT_BUSY;
-            rf_cmd_prop_cs.status = RFC_IDLE;
+            rf_cmd_prop_cs.base.status = RFC_IDLE;
 
             dev->cb(dev, IEEE802154_RADIO_CONFIRM_CCA);
         }
@@ -239,17 +239,25 @@ static int _read(ieee802154_dev_t *dev, void *buf, size_t max_size,
     pktlen = *(uint16_t *)&entry->data;
     if (pktlen < CC26X2_CC13X2_RF_RX_STATUS_LEN ||
         pktlen > IEEE802154G_FRAME_LEN_MAX + CC26X2_CC13X2_RF_RX_STATUS_LEN) {
-        entry->status = RFC_DATA_ENTRY_PENDING;
+        entry->base.status = RFC_DATA_ENTRY_PENDING;
         return -ENOENT;
     }
     pktlen -= CC26X2_CC13X2_RF_RX_STATUS_LEN;
     DEBUG("[cc26x2_cc13x2_rf]: reading packet of length %i\n", pktlen);
 
     psdu = (&entry->data) + sizeof(uint16_t);
+    DEBUG("Packet length: %"PRIu16"\n", pktlen);
+    DEBUG("Max size: %"PRIu32"\n", max_size);
+    for (size_t i = 0; i < pktlen; i++)
+    {
+        DEBUG("0x%X ", *((uint8_t*)buf + i));
+    }
+    
+    DEBUG("\n");
 
     if (max_size < pktlen) {
         DEBUG("[cc26x2_cc13x2_rf]: buffer is too small\n");
-        entry->status = RFC_DATA_ENTRY_PENDING;
+        entry->base.status = RFC_DATA_ENTRY_PENDING;
         return -ENOBUFS;
     }
     else {
@@ -260,7 +268,7 @@ static int _read(ieee802154_dev_t *dev, void *buf, size_t max_size,
             info->lqi = 0;
         }
         memcpy(buf, psdu, pktlen);
-        entry->status = RFC_DATA_ENTRY_PENDING;
+        entry->base.status = RFC_DATA_ENTRY_PENDING;
     }
 
     return pktlen;
@@ -276,7 +284,7 @@ static int _len(ieee802154_dev_t *dev)
 
     uint16_t pktlen = *(uint16_t *)&entry->data;
     if (pktlen < CC26X2_CC13X2_RF_RX_STATUS_LEN) {
-        entry->status = RFC_DATA_ENTRY_PENDING;
+        entry->base.status = RFC_DATA_ENTRY_PENDING;
         return -ENOENT;
     }
 

@@ -94,9 +94,29 @@ typedef struct {
    uint16_t length; /**< For pointer entries: Number of bytes in the data buffer
                          pointed to. For other entries: Number of bytes
                          following this length field */
-   uint8_t data; /**< First byte of the data array to be received or
+} rfc_data_entry_general_base_t;
+
+typedef struct {
+    rfc_data_entry_general_base_t base;
+    uint8_t data; /**< First byte of the data array to be received or
                       transmitted */
 } rfc_data_entry_general_t;
+
+
+/**
+ * @brief   Partial Read Rx Entry
+ */
+typedef struct {
+    rfc_data_entry_general_base_t base;
+    struct {
+        uint16_t num_elements:13;
+        uint16_t bentry_open:1;
+        uint16_t bfirst_conf:1;
+        uint16_t blast_conf:1;   
+    } pkt_status;
+    uint16_t next_idx;
+    uint8_t* rx_data;
+} rfc_data_entry_partial_rx;
 
 #ifdef __cplusplus
 } /* end of extern "C" */

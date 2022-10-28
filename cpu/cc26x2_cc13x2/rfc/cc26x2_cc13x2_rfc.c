@@ -33,6 +33,10 @@ void cc26x2_cc13x2_rfc_request_on(void)
      * it's needed to write one of the valid modes specified at
      * PRCM->RFCMODEHWOPT. On cc26x0 it's fine to write 0 */
     PRCM->RFCMODESEL = 0;
+    printf("size rfc_op: %d\n", sizeof(rfc_op_t));
+    printf("size rfc_start_time: %d\n", sizeof(rfc_ratmr_t));
+    printf("size rfc_cond: %d\n", sizeof(rfc_cond_t));
+    printf("size rfc_trig: %d\n", sizeof(rfc_trigger_t));
 
     /* Enable RF Core power domain */
     if (!power_is_domain_enabled(POWER_DOMAIN_RFC)) {

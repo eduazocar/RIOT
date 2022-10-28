@@ -57,9 +57,10 @@ typedef struct {
 } rfc_cond_t;
 
 /**
- * @brief   General radio operation.
+ * @brief   General radio commands format.
+ * @note    Always is used in operations commands
  */
-typedef struct {
+typedef struct __attribute__((packed)) {
     uint16_t command_no; /**< The command ID number */
     uint16_t status; /**< An integer telling the status of the command. */
     void *next_op; /**< Pointer to the next operation to run */
@@ -78,13 +79,7 @@ typedef struct {
  * @brief   Tune frequency synthesizer
  */
 typedef struct {
-    uint16_t command_no; /**< The command ID number */
-    uint16_t status; /**< An integer telling the status of the command. */
-    void *next_op; /**< Pointer to the next operation to run */
-    rfc_ratmr_t start_time; /**< Absolute or relative start time */
-    rfc_trigger_t start_trigger; /**< Identification of the trigger that
-                                      starts the operation */
-    rfc_cond_t condition; /**< Condition for running next command */
+    rfc_op_t base;      /**< Radio operation command structure format*/
     uint16_t frequency; /**< The frequency in MHz to tune to*/
     uint16_t fract_freq; /**< Fractional part of the frequency to tune to */
     struct {
@@ -109,13 +104,7 @@ typedef struct {
  * @brief   Powerdown frequency synthesizer
  */
 typedef struct {
-    uint16_t command_no; /**< The command ID number */
-    uint16_t status; /**< An integer telling the status of the command. */
-    void *next_op; /**< Pointer to the next operation to run */
-    rfc_ratmr_t start_time; /**< Absolute or relative start time */
-    rfc_trigger_t start_trigger; /**< Identification of the trigger that
-                                      starts the operation */
-    rfc_cond_t condition; /**< Condition for running next command */
+    rfc_op_t base;      /**< Radio Operation Command structure format*/
 } rfc_cmd_fs_powerdown_t;
 /** @} */
 
@@ -128,13 +117,7 @@ typedef struct {
  * @brief   Synchronize and Stop Radio Timer Command
  */
 typedef struct {
-    uint16_t command_no; /**< The command ID number */
-    uint16_t status; /**< An integer telling the status of the command. */
-    void *next_op; /**< Pointer to the next operation to run */
-    rfc_ratmr_t start_time; /**< Absolute or relative start time */
-    rfc_trigger_t start_trigger; /**< Identification of the trigger that
-                                      starts the operation */
-    rfc_cond_t condition; /**< Condition for running next command */
+    rfc_op_t base;      /**< Radio operation command structure format*/
     uint16_t __dummy0; /**< Reserved */
     rfc_ratmr_t rat0; /**< The returned RAT timer value corresponding to the
                            value the RAT would have had when the RTC was zero */
@@ -150,13 +133,7 @@ typedef struct {
  * @brief   Synchrously Start Radio Timer Command
  */
 typedef struct {
-    uint16_t command_no; /**< The command ID number */
-    uint16_t status; /**< An integer telling the status of the command. */
-    void *next_op; /**< Pointer to the next operation to run */
-    rfc_ratmr_t start_time; /**< Absolute or relative start time */
-    rfc_trigger_t start_trigger; /**< Identification of the trigger that
-                                      starts the operation */
-    rfc_cond_t condition; /**< Condition for running next command */
+    rfc_op_t base;      /**< Radio operation command structure format*/
     uint16_t __dummy0; /**< Reserved */
     rfc_ratmr_t rat0; /**< The desired RAT timer value corresponding to the
                            value the RAT would have had when the RTC was zero.

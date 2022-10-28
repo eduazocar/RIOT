@@ -24,12 +24,11 @@
 #include "cc26x2_cc13x2_rfc.h"
 #include "vendor/rf_patch_cpe_prop.h"
 #include "rf_conf.h"
-
 #include "net/ieee802154.h"
 
 #include "byteorder.h"
 
-#define ENABLE_DEBUG 0
+#define ENABLE_DEBUG 1
 #include "debug.h"
 
 #define PREAMBLE_LEN        (4U)    /**< Preamble length in bytes */
@@ -162,19 +161,21 @@ static uint32_t rf_prop_overrides[] = CC26X2_CC13X2_RF_PROP_OVERRIDE;
  */
 rfc_cmd_sync_start_rat_t rf_cmd_sync_start_rat =
 {
-    .command_no = RFC_CMD_SYNC_START_RAT,
-    .status = RFC_IDLE,
-    .next_op = NULL, /* set by us */
-    .start_time = 0,
-    .start_trigger = {
-        .type = RFC_TRIG_NOW,
-        .ena_cmd = 0,
-        .trigger_no = 0,
-        .past_trig = 0,
-    },
-    .condition = {
-        .rule = RFC_COND_NEVER,
-        .skip_no = 0,
+    .base = {
+        .command_no = RFC_CMD_SYNC_START_RAT,
+        .status = RFC_IDLE,
+        .next_op = NULL, /* set by us */
+        .start_time = 0,
+        .start_trigger = {
+            .type = RFC_TRIG_NOW,
+            .ena_cmd = 0,
+            .trigger_no = 0,
+            .past_trig = 0,
+        },
+        .condition = {
+            .rule = RFC_COND_NEVER,
+            .skip_no = 0,
+        },
     },
     .__dummy0 = 0,
     .rat0 = 0, /* set by us */
@@ -190,19 +191,21 @@ rfc_cmd_sync_start_rat_t rf_cmd_sync_start_rat =
  */
 rfc_cmd_prop_radio_div_setup_t rf_cmd_prop_radio_div_setup =
 {
-    .command_no = RFC_CMD_PROP_RADIO_DIV_SETUP,
-    .status = RFC_IDLE,
-    .next_op = NULL, /* set by us */
-    .start_time = 0,
-    .start_trigger = {
-        .type = RFC_TRIG_NOW,
-        .ena_cmd = 0,
-        .trigger_no = 0,
-        .past_trig = 0
-    },
-    .condition = {
-        .rule = RFC_COND_NEVER,
-        .skip_no = 0
+    .base = {
+        .command_no = RFC_CMD_PROP_RADIO_DIV_SETUP,
+        .status = RFC_IDLE,
+        .next_op = NULL, /* set by us */
+        .start_time = 0,
+        .start_trigger = {
+            .type = RFC_TRIG_NOW,
+            .ena_cmd = 0,
+            .trigger_no = 0,
+            .past_trig = 0
+        },
+        .condition = {
+            .rule = RFC_COND_NEVER,
+            .skip_no = 0
+        },
     },
     .modulation = {
         .mod_type = RFC_MOD_TYPE_GFSK,
@@ -246,19 +249,21 @@ rfc_cmd_prop_radio_div_setup_t rf_cmd_prop_radio_div_setup =
  */
 rfc_cmd_fs_t rf_cmd_fs =
 {
-    .command_no = RFC_CMD_FS,
-    .status = RFC_IDLE,
-    .next_op = NULL, /* set by us */
-    .start_time = 0,
-    .start_trigger = {
-        .type = RFC_TRIG_NOW,
-        .ena_cmd = 0,
-        .trigger_no = 0,
-        .past_trig = 0
-    },
-    .condition = {
-        .rule = RFC_COND_NEVER,
-        .skip_no = 0
+    .base = {
+        .command_no = RFC_CMD_FS,
+        .status = RFC_IDLE,
+        .next_op = NULL, /* set by us */
+        .start_time = 0,
+        .start_trigger = {
+            .type = RFC_TRIG_NOW,
+            .ena_cmd = 0,
+            .trigger_no = 0,
+            .past_trig = 0
+        },
+        .condition = {
+            .rule = RFC_COND_NEVER,
+            .skip_no = 0
+        },
     },
     .frequency = 0, /* set by us */
     .fract_freq = 0, /* set by us */
@@ -280,19 +285,21 @@ rfc_cmd_fs_t rf_cmd_fs =
  */
 rfc_cmd_prop_tx_adv_t rf_cmd_prop_tx_adv =
 {
-    .command_no = RFC_CMD_PROP_TX_ADV,
-    .status = RFC_IDLE,
-    .next_op = NULL, /* set by us */
-    .start_time = 0,
-    .start_trigger = {
-        .type = RFC_TRIG_NOW,
-        .ena_cmd = 0,
-        .trigger_no = 0,
-        .past_trig = 0
-    },
-    .condition = {
-        .rule = RFC_COND_NEVER,
-        .skip_no = 0
+    .base = {
+        .command_no = RFC_CMD_PROP_TX_ADV,
+        .status = RFC_IDLE,
+        .next_op = NULL, /* set by us */
+        .start_time = 0,
+        .start_trigger = {
+            .type = RFC_TRIG_NOW,
+            .ena_cmd = 0,
+            .trigger_no = 0,
+            .past_trig = 0
+        },
+        .condition = {
+            .rule = RFC_COND_NEVER,
+            .skip_no = 0
+        },
     },
     .pkt_conf = {
         .fs_off = 0,
@@ -326,19 +333,21 @@ rfc_cmd_prop_tx_adv_t rf_cmd_prop_tx_adv =
  */
 rfc_cmd_prop_rx_adv_t rf_cmd_prop_rx_adv =
 {
-    .command_no = RFC_CMD_PROP_RX_ADV,
-    .status = RFC_IDLE,
-    .next_op = NULL, /* set by us */
-    .start_time = 0,
-    .start_trigger = {
-        .type = RFC_TRIG_NOW,
-        .ena_cmd = 0,
-        .trigger_no = 0,
-        .past_trig = 0
-    },
-    .condition = {
-        .rule = RFC_COND_NEVER,
-        .skip_no = 0
+    .base = {
+       .command_no = RFC_CMD_PROP_RX_ADV,
+        .status = RFC_IDLE,
+        .next_op = NULL, /* set by us */
+        .start_time = 0,
+        .start_trigger = {
+            .type = RFC_TRIG_NOW,
+            .ena_cmd = 0,
+            .trigger_no = 0,
+            .past_trig = 0
+        },
+        .condition = {
+            .rule = RFC_COND_NEVER,
+            .skip_no = 0
+        },
     },
     .pkt_conf = {
         .fs_off = 0,
@@ -389,19 +398,21 @@ rfc_cmd_prop_rx_adv_t rf_cmd_prop_rx_adv =
 /** Carrier sense command, used to perform CCA */
 rfc_cmd_prop_cs_t rf_cmd_prop_cs =
 {
-    .command_no = RFC_CMD_PROP_CS,
-    .status = RFC_IDLE,
-    .next_op = NULL,
-    .start_time = 0,
-    .start_trigger = {
-        .type = RFC_TRIG_NOW,
-        .ena_cmd = 0,
-        .trigger_no = 0,
-        .past_trig = 0
-    },
-    .condition = {
-        .rule = RFC_COND_NEVER,
-        .skip_no = 0
+    .base = {
+        .command_no = RFC_CMD_PROP_CS,
+        .status = RFC_IDLE,
+        .next_op = NULL,
+        .start_time = 0,
+        .start_trigger = {
+            .type = RFC_TRIG_NOW,
+            .ena_cmd = 0,
+            .trigger_no = 0,
+            .past_trig = 0
+        },
+        .condition = {
+            .rule = RFC_COND_NEVER,
+            .skip_no = 0
+        },
     },
     .fs_conf = {
         /* we don't want to turn off the Frequency Synthesizer after a
@@ -496,14 +507,13 @@ void cc26x2_cc13x2_rf_internal_init(void)
 
     cc26x2_cc13x2_rf_pa_t *pa_val = &cc26x2_cc13x2_rf_patable[0];
     _tx_pwr = pa_val->dbm;
-
-    rf_cmd_prop_radio_div_setup.condition.rule = RFC_COND_ALWAYS;
-    rf_cmd_prop_radio_div_setup.condition.skip_no = 0;
-    rf_cmd_prop_radio_div_setup.next_op = (rfc_op_t *)&rf_cmd_fs;
+    rf_cmd_prop_radio_div_setup.base.condition.rule = RFC_COND_ALWAYS;
+    rf_cmd_prop_radio_div_setup.base.condition.skip_no = 0;
+    rf_cmd_prop_radio_div_setup.base.next_op = (rfc_op_t *)&rf_cmd_fs;
     rf_cmd_prop_radio_div_setup.tx_power = pa_val->val;
 
-    rf_cmd_sync_start_rat.next_op = &rf_cmd_prop_radio_div_setup;
-    rf_cmd_sync_start_rat.condition.rule = RFC_COND_ALWAYS;
+    rf_cmd_sync_start_rat.base.next_op = &rf_cmd_prop_radio_div_setup;
+    rf_cmd_sync_start_rat.base.condition.rule = RFC_COND_ALWAYS;
     rf_cmd_sync_start_rat.rat0 = _rat_offset;
 
     memset(_short_addr, 0, IEEE802154_SHORT_ADDRESS_LEN);
@@ -555,7 +565,7 @@ int cc26x2_cc13x2_rf_request_cca(void)
 {
     uint32_t cmdsta;
 
-    rf_cmd_prop_cs.status = RFC_IDLE;
+    rf_cmd_prop_cs.base.status = RFC_IDLE;
     cmdsta = cc26x2_cc13x2_rfc_request_execute((uintptr_t)&rf_cmd_prop_cs);
     if ((cmdsta & 0xFF) != RFC_CMDSTA_DONE) {
         DEBUG("[cc26x2_cc13x2_rf]: CMD_PROP_CS failed with cmdsta=%08lx",
@@ -568,7 +578,7 @@ int cc26x2_cc13x2_rf_request_cca(void)
 
 bool cc26x2_cc13x2_rf_rx_is_on(void)
 {
-    return rf_cmd_prop_rx_adv.status == RFC_ACTIVE;
+    return rf_cmd_prop_rx_adv.base.status == RFC_ACTIVE;
 }
 
 int cc26x2_cc13x2_rf_rx_start(void)
@@ -585,11 +595,11 @@ int cc26x2_cc13x2_rf_rx_start(void)
      *
      * TODO: what about re-generating the ISR event and return -EBUSY here to
      * avoid the loss of these packets? */
-    if (rf_cmd_prop_rx_adv.status == RFC_PROP_ERROR_RXBUF) {
+    if (rf_cmd_prop_rx_adv.base.status == RFC_PROP_ERROR_RXBUF) {
         DEBUG("[cc26x2_cc13x2_rf]: clearing RX queue\n");
         cmdsta = cc26x2_cc13x2_rfc_request_execute((uintptr_t)&rf_cmd_clear_rx);
         assert((cmdsta & 0xFF) == RFC_CMDSTA_DONE);
-        rf_cmd_prop_rx_adv.status = RFC_IDLE;
+        rf_cmd_prop_rx_adv.base.status = RFC_IDLE;
     }
 
     rf_cmd_prop_rx_adv.queue = &_rx_queue;
@@ -603,7 +613,7 @@ int cc26x2_cc13x2_rf_rx_start(void)
     }
 
     if ((cmdsta & 0xFF) != RFC_CMDSTA_DONE) {
-        rf_cmd_prop_rx_adv.status = RFC_IDLE;
+        rf_cmd_prop_rx_adv.base.status = RFC_IDLE;
         return -EIO;
     }
 
@@ -615,7 +625,7 @@ void cc26x2_cc13x2_rf_rx_stop(void)
     DEBUG_PUTS("stop");
     assert(cc26x2_cc13x2_rf_rx_is_on());
     cc26x2_cc13x2_rfc_abort_cmd();
-    rf_cmd_prop_rx_adv.status = RFC_IDLE;
+    rf_cmd_prop_rx_adv.base.status = RFC_IDLE;
 }
 
 rfc_data_entry_general_t *cc26x2_cc13x2_rf_recv(void)
@@ -669,7 +679,7 @@ int cc26x2_cc13x2_rf_write(const iolist_t *iolist)
      * our case */
     rf_cmd_prop_tx_adv.pkt_len = IEEE802154_PHY_MR_FSK_PHR_LEN + psdu_len;
     rf_cmd_prop_tx_adv.pkt = _tx_buf;
-    rf_cmd_prop_tx_adv.status = RFC_IDLE;
+    rf_cmd_prop_tx_adv.base.status = RFC_IDLE;
 
     return 0;
 }
@@ -685,6 +695,9 @@ int cc26x2_cc13x2_rf_request_transmit(void)
             break;
         /* previous command, if any, has not been finished */
         case RFC_CMDSTA_SCHEDULINGERROR:
+            DEBUG("BUSY\n");
+            cc26x2_cc13x2_rfc_abort_cmd();
+            rf_cmd_prop_tx_adv.base.status = RFC_IDLE;
             return -EBUSY;
         default:
             DEBUG("[cc26x2_cc13x2_rf]: couldn't send TX command, cmdsta=%08lx\n",
@@ -732,7 +745,7 @@ int cc26x2_cc13x2_rf_change_chan(uint16_t channel)
     }
     while (cc26x2_cc13x2_rfc_confirm_execute() == -EAGAIN) {}
 
-    assert(rf_cmd_fs.status = RFC_DONE_OK);
+    assert(rf_cmd_fs.base.status = RFC_DONE_OK);
 
     _channel = channel;
 
