@@ -121,6 +121,7 @@ void cc26x2_cc13x2_rfc_isr(void)
         }
         /* we don't want an empty payload or a big one we can't handle :-) */
         uint16_t pktlen = *(uint16_t *)&entry->data;
+        DEBUG("sIZE OF PKTLEN %d\n", pktlen);
         if (pktlen < CC26X2_CC13X2_RF_RX_STATUS_LEN ||
             pktlen > IEEE802154G_FRAME_LEN_MAX + CC26X2_CC13X2_RF_RX_STATUS_LEN) {
             entry->base.status = RFC_DATA_ENTRY_PENDING;
@@ -177,6 +178,7 @@ void cc26x2_cc13x2_rfc_isr(void)
         (RFC_DBELL->RFCPEIEN & CPE_IRQ_LAST_COMMAND_DONE)) {
         RFC_DBELL_NONBUF->RFCPEIFG = ~CPE_IRQ_LAST_COMMAND_DONE;
         RFC_DBELL->RFCPEIEN &= ~CPE_IRQ_LAST_COMMAND_DONE;
+        DEBUG("PROP tx_adv STATUS: 0x%04X\n", rf_cmd_prop_tx_adv.base.status);
 
         if (rf_cmd_prop_tx_adv.base.status == RFC_PROP_DONE_OK) {
             rf_cmd_prop_tx_adv.base.status = RFC_IDLE;
@@ -191,8 +193,7 @@ void cc26x2_cc13x2_rfc_isr(void)
             case STATE_ACK:
                 _tx_state = TX_STATE_IDLE;
                 /* restore RX */
-                cc26x2_cc13x2_rf_rx_start();
-
+                // cc26x2_cc13x2_rf_rx_start();
                 _set_ifs_timer(false);
                 dev->cb(dev, IEEE802154_RADIO_INDICATION_RX_DONE);
                 break;
@@ -201,7 +202,6 @@ void cc26x2_cc13x2_rfc_isr(void)
                 break;
             }
         }
-
         if (rf_cmd_prop_cs.base.status == RFC_PROP_DONE_IDLE ||
             rf_cmd_prop_cs.base.status == RFC_PROP_DONE_BUSY) {
             _cca_result =
@@ -308,7 +308,7 @@ static int _request_op(ieee802154_dev_t *dev, ieee802154_hal_op_t op, void *ctx)
     case IEEE802154_HAL_OP_TRANSMIT:
         if (_cfg.ifs) {
             DEBUG("[cc26x2_cc13x2_rf]: waiting IFS period\n");
-            goto end;
+            return res;
         }
         state = STATE_TX;
         _tx_state = TX_STATE_TX;
@@ -317,17 +317,19 @@ static int _request_op(ieee802154_dev_t *dev, ieee802154_hal_op_t op, void *ctx)
             cc26x2_cc13x2_rf_rx_stop();
         }
 
-        RFC_DBELL_NONBUF->RFCPEIFG = ~CPE_IRQ_LAST_COMMAND_DONE;
+        RFC_DBELL->RFCPEIFG = ~CPE_IRQ_LAST_COMMAND_DONE;
         RFC_DBELL_NONBUF->RFCPEIEN |= CPE_IRQ_LAST_COMMAND_DONE;
 
         if ((res = cc26x2_cc13x2_rf_request_transmit()) != 0) {
             DEBUG("[cc26x2_cc13x2_rf]: failed to transmit\n");
-            RFC_DBELL_NONBUF->RFCPEIFG = ~CPE_IRQ_LAST_COMMAND_DONE;
+            RFC_DBELL->RFCPEIFG = ~CPE_IRQ_LAST_COMMAND_DONE;
+            cc26x2_cc13x2_rfc_abort_cmd();
+            return res;
         }
         break;
     case IEEE802154_HAL_OP_SET_RX:
         if (_state != STATE_IDLE && _state != STATE_RX) {
-            goto end;
+            return res;
         }
         state = STATE_RX;
         _tx_state = TX_STATE_IDLE;
@@ -337,7 +339,7 @@ static int _request_op(ieee802154_dev_t *dev, ieee802154_hal_op_t op, void *ctx)
         assert(ctx);
         bool force = *((bool*) ctx);
         if (!force && _state != STATE_IDLE && _state != STATE_RX) {
-            goto end;
+            return res;
         }
         if (cc26x2_cc13x2_rf_rx_is_on()) {
             cc26x2_cc13x2_rf_rx_stop();
@@ -362,8 +364,6 @@ static int _request_op(ieee802154_dev_t *dev, ieee802154_hal_op_t op, void *ctx)
 
     _state = state;
     res = 0;
-
-end:
     return res;
 }
 
@@ -640,9 +640,7 @@ void cc26x2_cc13x2_rf_init(void)
 {
     _ack[0] = IEEE802154_FCF_TYPE_ACK; /* FCF */
     _ack[1] = 0; /* FCF */
-
     cc26x2_cc13x2_rf_internal_init();
-
     int result = timer_init(CC26X2_CC13X2_RF_TIMER, TIMER_FREQ, _timer_cb, NULL);
     assert(result >= 0);
     (void)result;

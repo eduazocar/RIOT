@@ -22,8 +22,8 @@
 #include "cpu.h"
 #include "cc26x2_cc13x2_rfc.h"
 #include "cc26xx_cc13xx_power.h"
-
-#define ENABLE_DEBUG 0
+#include "cc26xx_cc13xx_rfc_prop_cmd.h"
+#define ENABLE_DEBUG 1
 #include "debug.h"
 
 void cc26x2_cc13x2_rfc_request_on(void)
@@ -37,6 +37,7 @@ void cc26x2_cc13x2_rfc_request_on(void)
     printf("size rfc_start_time: %d\n", sizeof(rfc_ratmr_t));
     printf("size rfc_cond: %d\n", sizeof(rfc_cond_t));
     printf("size rfc_trig: %d\n", sizeof(rfc_trigger_t));
+    DEBUG("sIZE OF cmd_ptr %d\n", sizeof(rfc_cmd_ptr_t));
 
     /* Enable RF Core power domain */
     if (!power_is_domain_enabled(POWER_DOMAIN_RFC)) {
@@ -103,6 +104,49 @@ void cc26x2_cc13x2_rfc_finish_on(void (* cpe_patch_fn)(void))
     AON_RTC->CTL |= AON_RTC_CTL_RTC_UPD_EN;
 }
 
+void check_cmd_input(rfc_op_t * cmd){
+    switch (cmd->status)
+    {
+    case RFC_ERROR_START_TRIG:
+        DEBUG("Failed starting command\n");
+        break;
+    case RFC_ERROR_CONDITION:
+        DEBUG("Unknown Command condition\n");
+    default:
+        break;
+    }
+}
+
+uint8_t is_radio_op_cmd(rfc_op_t *cmd){
+    switch (cmd->command_no) {
+    case RF_CMD_PROP_TX_ID:
+    case RF_CMD_PROP_RX_ID:
+    case RF_CMD_PROP_TX_ADV_ID:
+    case RF_CMD_PROP_RX_ADV_ID:
+    case RF_CMD_PROP_CS_ID:
+    case RF_CMD_PROP_RADIO_SETUP_ID:
+    case RF_CMD_PROP_RADIO_DIV_SETUP_ID:
+    case RF_CMD_PROP_SNIFF_ID:
+    case RF_CMD_PROP_RX_ADV_SNIFF_ID:
+        return 0;
+    default:
+        return -1;
+    }
+}
+
+uint32_t cmd_op_execute(uintptr_t cmd) {
+
+    unsigned key = irq_disable();
+    DEBUG("OPE\n");
+    while (RFC_DBELL->CMDR != 0) {}
+    RFC_DBELL->CMDR = cmd & 0xFFFFFFFC;
+    while (!RFC_DBELL->RFACKIFG) {}
+    RFC_DBELL->RFACKIFG = 0;
+    uint32_t cmdsta = RFC_DBELL->CMDSTA;
+    irq_restore(key);
+    return cmdsta;
+}
+
 /**
  * @brief   Send a command syncrhonously to the RF Core
  *
@@ -110,24 +154,32 @@ void cc26x2_cc13x2_rfc_finish_on(void (* cpe_patch_fn)(void))
  */
 uint32_t cc26x2_cc13x2_rfc_request_execute(uintptr_t cmd)
 {
-    assert((cmd & 3) == 0 || (cmd & 0x00000001));
-
+    assert((cmd & 3) == 0 || (cmd & 0x00000003));
+    // DEBUG("0x%X\n", cmd);
     unsigned key = irq_disable();
     /* Wait until the doorbell becomes available */
     while (RFC_DBELL->CMDR != 0) {}
-    RFC_DBELL->RFACKIFG = 0;
-
     /* Submit the command to the CM0 through the doorbell */
     RFC_DBELL->CMDR = cmd;
-
     /* Wait until the CM0 starts to parse the command */
-    while (!RFC_DBELL->RFACKIFG) {}
+    while (RFC_DBELL->RFACKIFG != RFACKIFG_ACKFLAG) {}
+    // DEBUG("DBELL->CMDR: 0x%X\n", RFC_DBELL->CMDR);
+    // DEBUG("DBELL->CMDSTA: 0x%04"PRIX32"\n", RFC_DBELL->CMDSTA);
+    // DEBUG("DBELL->RFHWIFG: 0x%"PRIX32"\n", RFC_DBELL->RFHWIFG);
+    // DEBUG("DBELL->RFHWIEN: 0x%04"PRIX32"\n", RFC_DBELL->RFHWIEN);
+    // DEBUG("DBELL->RFCPEIFG: 0x%04"PRIX32"\n", RFC_DBELL->RFCPEIFG);
+    // DEBUG("DBELL->RFCPEIEN: 0x%04"PRIX32"\n", RFC_DBELL->RFCPEIEN);
+    // DEBUG("DBELL->RFCPEISL: 0x%04"PRIX32"\n", RFC_DBELL->RFCPEISL);
+    // DEBUG("DBELL->RFACKIFG: 0x%04"PRIX32"\n", RFC_DBELL->RFACKIFG);
+    // DEBUG("DBELL->SYSGPOCTL: 0x%04"PRIX32"\n", RFC_DBELL->SYSGPOCTL);
     RFC_DBELL->RFACKIFG = 0;
 
     /* Return the content of status register */
     uint32_t cmdsta = RFC_DBELL->CMDSTA;
     irq_restore(key);
-
+    // if(cc26x2_cc13x2_rfc_confirm_execute() < 0){
+    //     return RFC_CMDSTA_PENDING;
+    // }
     return cmdsta;
 }
 

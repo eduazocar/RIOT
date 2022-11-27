@@ -286,7 +286,7 @@ rfc_cmd_fs_t rf_cmd_fs =
 rfc_cmd_prop_tx_adv_t rf_cmd_prop_tx_adv =
 {
     .base = {
-        .command_no = RFC_CMD_PROP_TX_ADV,
+        .command_no = RF_CMD_PROP_TX_ADV_ID,
         .status = RFC_IDLE,
         .next_op = NULL, /* set by us */
         .start_time = 0,
@@ -334,7 +334,7 @@ rfc_cmd_prop_tx_adv_t rf_cmd_prop_tx_adv =
 rfc_cmd_prop_rx_adv_t rf_cmd_prop_rx_adv =
 {
     .base = {
-       .command_no = RFC_CMD_PROP_RX_ADV,
+       .command_no = RF_CMD_PROP_RX_ADV_ID,
         .status = RFC_IDLE,
         .next_op = NULL, /* set by us */
         .start_time = 0,
@@ -420,7 +420,6 @@ rfc_cmd_prop_cs_t rf_cmd_prop_cs =
         .off_idle = 0,
         .off_busy = 0,
     },
-    .__dummy0 = 0,
     .conf = {
         .ena_rssi = 1, /* use RSSI as the measurement parameter */
         .ena_corr = 0,
@@ -490,6 +489,8 @@ void cc26x2_cc13x2_rf_internal_init(void)
             entry->next_entry = _rx_buf[i + 1];
         }
     }
+    DEBUG("size of cs: %d\n", sizeof(rfc_cmd_prop_cs_t));
+    DEBUG("size of ops: %d\n", sizeof(rfc_op_t));
 
     /* Put a pointer to the receive buffers on the received queue, last entry is
      * null, this to make a circular buffer */
@@ -690,14 +691,13 @@ int cc26x2_cc13x2_rf_request_transmit(void)
     uint32_t cmdsta;
 
     cmdsta = cc26x2_cc13x2_rfc_request_execute((uintptr_t)&rf_cmd_prop_tx_adv);
+    
     switch (cmdsta & 0xFF) {
         case RFC_CMDSTA_DONE:
             break;
         /* previous command, if any, has not been finished */
         case RFC_CMDSTA_SCHEDULINGERROR:
             DEBUG("BUSY\n");
-            cc26x2_cc13x2_rfc_abort_cmd();
-            rf_cmd_prop_tx_adv.base.status = RFC_IDLE;
             return -EBUSY;
         default:
             DEBUG("[cc26x2_cc13x2_rf]: couldn't send TX command, cmdsta=%08lx\n",

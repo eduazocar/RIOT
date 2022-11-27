@@ -12,7 +12,13 @@
  *
  * @file
  * @brief           CC26xx/CC13xx RF Core proprietary PHY commands definitions
- *
+ * 
+ * The radio propetary mode only works on some cc26xx and cc13xx cpu model.
+ * these are the supported models to operate with sub-GHZ band:
+ * 
+ * - CC1312R Series
+ * - CC1352P Series
+ * 
  * @author          Jean Pierre Dudey <jeandudey@hotmail.com>
  */
 
@@ -27,10 +33,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define RFC_MOD_TYPE_FSK            (0) /**< FSK modulation type */
-#define RFC_MOD_TYPE_GFSK           (1) /**< GFSK modulation type */
-#define RFC_MOD_TYPE_OOK            (2) /**< OOK modulation type */
 
 #define RFC_DEV_STEP_SZ_250_HZ      (0) /**< 250 Hz deviation step size */
 #define RFC_DEV_STEP_SZ_1000_HZ     (1) /**< 1000 Hz deviation step size */
@@ -71,20 +73,55 @@ extern "C" {
 #define RFC_BIAS_MODE_EXTERNAL  (1) /**< External bias */
 
 /**
- * @brief   CMD_PROP_RADIO_DIV_SETUP
+ * @name Radio Operation Commands Identifiers
+ * 
+ * ------------------------------------------------------------
+ * |   Command                             | ID  number                
+ * |:--------------------------------------|:-----------------:
+ * | @ref RF_CMD_PROP_TX_ID                | 0x3801
+ * | @ref RF_CMD_PROP_RX_ID                | 0x3802
+ * | @ref RF_CMD_PROP_TX_ADV_ID            | 0x3803
+ * | @ref RF_CMD_PROP_RX_ADV_ID            | 0x3804
+ * | @ref RF_CMD_PROP_CS_ID                | 0x3805
+ * | @ref RF_CMD_PROP_RADIO_SETUP_ID       | 0x3806
+ * | @ref RF_CMD_PROP_RADIO_DIV_SETUP_ID   | 0x3807
+ * | @ref RF_CMD_PROP_SNIFF_ID             | 0x3808
+ * | @ref RF_CMD_PROP_RX_ADV_SNIFF_ID      | 0x3809
+ * ------------------------------------------------------------  
  * @{
  */
+#define RF_CMD_PROP_TX_ID (0X3801) /**< Transmit packet*/
+#define RF_CMD_PROP_RX_ID (0X3802) /**< Receive packet or packets*/
+#define RF_CMD_PROP_TX_ADV_ID (0X3803) /**< Transmit packet on advanced mode*/
+#define RF_CMD_PROP_RX_ADV_ID (0X3804) /**< Receive packet on advanced mode */
+#define RF_CMD_PROP_CS_ID (0X3805) /**< Run carrier sense command*/
+#define RF_CMD_PROP_RADIO_SETUP_ID (0X3806) /**< Set up radio in proprietary mode*/
+#define RF_CMD_PROP_RADIO_DIV_SETUP_ID (0X3807) /**< Set up radio in proprietary mode*/
+#define RF_CMD_PROP_SNIFF_ID (0X3808) /**< Receive packet or packets with sniff mode support*/
+#define RF_CMD_PROP_RX_ADV_SNIFF_ID (0X3809) /**< Receive packet or packets with advanced modes and sniff mode support*/
+/**@}*/
+
 /**
- * @brief   Modulation parameters
+ * @name Radio Inmediate Commands Identifiers
+ * 
+ * ----------------------------------------------------
+ * |   Command                             | ID  number                
+ * |:--------------------------------------|:------------:
+ * | @ref RF_CMD_PROP_SET_LEN              | 0x3401
+ * | @ref CMD_PROP_RESTART_RX              | 0x3402
+ * -------------------------------------------------------
+ * @{
+ */
+#define RF_CMD_PROP_SET_LEN (0X3401) /**< Set length of packet being received*/
+#define CMD_PROP_RESTART_RX (0X3402) /**< Set length of packet being received*/
+/**@}*/
+
+/**
+ * @name Modulation parameters
+ * @{
  */
 typedef struct {
-    /**
-     * 0h = FSK
-     * 1h = GFSK
-     * 2h = OOK
-     * Others: Reserved
-     */
-    uint16_t mod_type:3;
+    uint16_t mod_type:3; /**< Define type of radio @ref mod_val "modulation"*/
 #if defined(CPU_VARIANT_X2)
     /**
      * Deviation, specified in number of steps, with step size given by
@@ -106,6 +143,25 @@ typedef struct {
     uint16_t deviation:13;
 #endif
 } rfc_modulation_t;
+/**@}*/
+
+/**
+ * ####  Modulation Types Values {#mod_val}
+ * @name Values accepted in @p mod_type field:
+ * bit 0 - 3
+ * -------------------------------
+ * | Type of Modulation | Value
+ * |:-------------------|:-------:
+ * | RFC_MOD_TYPE_FSK   | 0
+ * | RFC_MOD_TYPE_GFSK  | 1
+ * | RFC_MOD_TYPE_OOK   | 2
+ * | Reserved           | others
+ * @{
+ */
+#define RFC_MOD_TYPE_FSK            (0) /**< FSK modulation type */
+#define RFC_MOD_TYPE_GFSK           (1) /**< GFSK modulation type */
+#define RFC_MOD_TYPE_OOK            (2) /**< OOK modulation type */
+/**@}*/
 
 /**
  * @brief   CMD_PROP_RADIO_DIV_SETUP command ID
@@ -243,13 +299,7 @@ typedef struct {
      */
     uint8_t lo_divider;
 } rfc_cmd_prop_radio_div_setup_t;
-/** @} */
 
-/**
- * @brief   CMD_PROP_TX_ADV
- * @{
- */
-#define RFC_CMD_PROP_TX_ADV (0x3803) /**< CMD_PROP_TX_ADV command ID */
 /**
  * @brief   Proprietary Mode Advanced Transmit Command
  */
@@ -314,14 +364,9 @@ typedef struct {
     rfc_ratmr_t pre_time;
     uint32_t sync_word; /**< Sync word to transmit */
     uint8_t *pkt; /**< Pointer to packet, or TX queue for unlimited length */
+    uint32_t voiddata;
 } rfc_cmd_prop_tx_adv_t;
-/** @} */
 
-/**
- * @brief   CMD_PROP_RX_ADV
- * @{
- */
-#define RFC_CMD_PROP_RX_ADV (0x3804) /**< CMD_PROP_RX_ADV command ID */
 /**
  * @brief   Proprietary Mode Advanced Receive Command
  */
@@ -446,7 +491,6 @@ typedef struct {
     rfc_data_queue_t *queue; /**< Pointer to receive queue */
     uint8_t *output; /**< Pointer to output structure */
 } rfc_cmd_prop_rx_adv_t;
-/** @} */
 
 //! @}
 
@@ -458,8 +502,8 @@ typedef struct {
 /**
  * @brief   Carrier Sense Command
  */
-typedef struct {
-    rfc_op_t base;      /**< Radio operation command structure format*/
+typedef struct __attribute__((packed)) {
+    rfc_op_t base;
     struct {
         /**
          * 0h = Keep synth running if command ends with channel Idle.
@@ -472,7 +516,6 @@ typedef struct {
          */
         uint8_t off_busy:1;
     } fs_conf; /**< Synthesizer configuration */
-    uint8_t __dummy0; /**< Padding */
     struct {
        /**
         * If 1, enable RSSI as a criterion

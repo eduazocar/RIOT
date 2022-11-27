@@ -86,6 +86,8 @@ uint32_t cc26x2_cc13x2_rfc_request_execute(uintptr_t cmd);
  */
 int cc26x2_cc13x2_rfc_confirm_execute(void);
 
+uint32_t cmd_op_execute(uintptr_t cmd);
+
 /**
  * @brief   Abort a running command.
  */

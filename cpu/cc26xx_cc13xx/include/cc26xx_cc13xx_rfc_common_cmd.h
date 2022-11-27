@@ -35,6 +35,20 @@ extern "C" {
 #define RFC_CMD_STOP (0x0402) /**< Stop a running command */
 /** @} */
 
+typedef union __attribute__((aligned(4)))
+{
+    struct {
+        uintptr_t lsbs:2;
+        uintptr_t cmd_ptr:30;
+    }op_cmd;
+    struct {
+        uintptr_t lsbs:2;
+        uintptr_t oparam_ext:6;
+        uintptr_t oparam:8;
+        uintptr_t cmd_ptr: 16;
+    }dir_cmd;
+}rfc_cmd_ptr_t;
+
 /**
  * @brief   Radio operation start trigger
  */
@@ -60,7 +74,7 @@ typedef struct {
  * @brief   General radio commands format.
  * @note    Always is used in operations commands
  */
-typedef struct __attribute__((packed)) {
+typedef struct __attribute__((packed)){
     uint16_t command_no; /**< The command ID number */
     uint16_t status; /**< An integer telling the status of the command. */
     void *next_op; /**< Pointer to the next operation to run */
